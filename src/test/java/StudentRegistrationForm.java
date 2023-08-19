@@ -1,6 +1,7 @@
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -91,9 +92,16 @@ public class StudentRegistrationForm {
 
     @BeforeTest
     void setup() {
-        WebDriverManager.chromedriver().setup();
+//        WebDriverManager.chromedriver().setup();
+//
+//        driver = new ChromeDriver();
 
-        driver = new ChromeDriver();
+
+
+        WebDriverManager.firefoxdriver().setup();
+
+        driver = new FirefoxDriver();
+
         driver.navigate().to(demoSiteUrl);
         driver.manage().window().maximize();
 
@@ -165,8 +173,8 @@ public class StudentRegistrationForm {
         String selectDay="16";
         String selectYear="1993";
 
-               JavascriptExecutor j = (JavascriptExecutor) driver;
-        j.executeScript("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'})", txtPhoneNumber);
+        JavascriptExecutor jse = (JavascriptExecutor)driver;
+        jse.executeScript("window.scrollBy(0,250)");
         driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
 
 
@@ -189,7 +197,8 @@ public class StudentRegistrationForm {
 
         tdSelectDays= driver.findElements(calendarday);
         ReturnDate(tdSelectDays,selectDay);
-        dtpDateOfBirth.sendKeys(Keys.TAB);
+//        dtpDateOfBirth.sendKeys(Keys.ARROW_DOWN);
+        new WebDriverWait(driver, Duration.ofSeconds(5)).until(ExpectedConditions.invisibilityOfElementLocated(calendarday));
 
         }
 
@@ -261,7 +270,7 @@ public class StudentRegistrationForm {
     {
       String File ="Testing-3-2.jpg";
 
-      String filetoUpload=System.getProperty("user.dir")+"//imgs//"+File;
+      String filetoUpload=System.getProperty("user.dir")+"\\imgs\\"+File;
 //        System.out.println(filetoUpload);
 
         btnFileUpload=driver.findElement(selectFile);
@@ -278,6 +287,9 @@ public class StudentRegistrationForm {
 
         txtAreaAddress.sendKeys("Address Test");
 
+        JavascriptExecutor executor = (JavascriptExecutor) driver;
+        executor.executeScript("arguments[0].scrollIntoView(true);", txtAreaAddress);
+
     }
 
     @Test (enabled = true,priority = 9)
@@ -293,7 +305,26 @@ public class StudentRegistrationForm {
         String cityxpath="//*[contains(text(),'"
                 +  testcity+"')]";
          WebElement State=driver.findElement(selectState);
-        State.click();
+
+
+
+        try{
+
+//            WebElement element=new WebDriverWait(driver,Duration.ofSeconds(10)).until(ExpectedConditions.presenceOfElementLocated(selectState));
+//            element.click();
+            State.click();
+
+
+        }
+
+        catch (ElementClickInterceptedException e1) {
+            System.err.println("NumberFormatException => " + e1.getMessage());
+            Actions builder = new Actions(driver);
+            builder.moveToElement(State).click().build().perform();
+            builder.moveToElement(State).sendKeys(Keys.ENTER).build().perform();
+
+        }
+
         dropdownlistState= State.findElements(By.xpath(statexpath));
 
         dropdownlistState.stream()
@@ -338,9 +369,9 @@ public class StudentRegistrationForm {
 
     @Test (enabled = true,priority = 11)
 
-    void Closeform()
-    {
+    void Closeform() throws InterruptedException {
 
+           Thread.sleep(2000);
 
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         jse.executeScript("$('#closeLargeModal').trigger('click');");
